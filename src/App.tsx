@@ -7,6 +7,7 @@ import { AuthProvider } from "@/hooks/useAuth";
 import Index from "./pages/Index";
 import { SetupPage } from "./pages/Setup";
 import RoleAuth from "./pages/RoleAuth";
+import AuthCallback from "./pages/AuthCallback";
 import NotFound from "./pages/NotFound";
 import AdminPage from "./pages/AdminPage";
 import DoctorDashboard from "./components/DoctorDashboard";
@@ -37,6 +38,7 @@ const App = () => (
           <Routes>
             <Route path="/" element={<RoleSelectorWrapper />} />
             <Route path="/auth/:role" element={<RoleAuth />} />
+            <Route path="/auth/callback" element={<AuthCallback />} />
             <Route path="/dashboard/doctor" element={<DoctorDashboard />} />
             <Route path="/dashboard/radiologist" element={<ComingSoonDashboard role="Radiologist" />} />
             <Route path="/dashboard/lab_technician" element={<ComingSoonDashboard role="Lab Technician" />} />
