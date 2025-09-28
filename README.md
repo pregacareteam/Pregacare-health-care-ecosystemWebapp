@@ -152,3 +152,5 @@ This project is licensed under the MIT License.
 **Built with ❤️ for better pregnancy care coordination**
 
 *Empowering healthcare providers to deliver seamless, coordinated care through intelligent communication and assignment systems.*
+
+🚀 **GitHub Actions & Vercel deployment configured!**
