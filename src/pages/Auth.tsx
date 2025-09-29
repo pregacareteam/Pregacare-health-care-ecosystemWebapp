@@ -180,12 +180,17 @@ export default function Auth() {
     try {
       setLoading(true);
       
+      // Determine the correct redirect URL based on environment
+      const isProduction = window.location.hostname !== 'localhost';
+      const redirectUrl = isProduction 
+        ? 'https://pregacare-health-care-ecosystem-web.vercel.app/auth/callback'
+        : `${window.location.origin}/auth/callback`;
+      
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
+          redirectTo: `${redirectUrl}?role=${selectedRole || 'patient'}`,
           queryParams: {
-            role: selectedRole || 'patient',
             access_type: 'offline',
             prompt: 'consent'
           }

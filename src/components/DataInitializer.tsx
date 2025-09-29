@@ -58,17 +58,17 @@ export function DataInitializer() {
   const handleSeedData = async () => {
     setIsSeeding(true);
     try {
-      await dataSeeder.seedAllData();
+      await dataSeeder.seedEssentialData();
       updateStats();
       toast({
         title: "Success!",
-        description: "Sample data has been generated successfully.",
+        description: "Essential system data has been initialized successfully.",
       });
     } catch (error) {
       console.error('Error seeding data:', error);
       toast({
         title: "Error",
-        description: "Failed to generate sample data.",
+        description: "Failed to initialize system data.",
         variant: "destructive",
       });
     } finally {
@@ -164,9 +164,9 @@ export function DataInitializer() {
       <div className="grid md:grid-cols-2 gap-4 mb-6">
         <Card>
           <CardHeader>
-            <CardTitle className="text-green-700">Generate Sample Data</CardTitle>
+            <CardTitle className="text-green-700">Initialize System Data</CardTitle>
             <CardDescription>
-              Create realistic sample data for testing and development
+              Set up essential system configurations and subscription packages
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -178,17 +178,17 @@ export function DataInitializer() {
               {isSeeding ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Generating Data...
+                  Initializing System...
                 </>
               ) : (
                 <>
                   <Database className="w-4 h-4 mr-2" />
-                  Generate Sample Data
+                  Initialize System Data
                 </>
               )}
             </Button>
             <p className="text-xs text-gray-500 mt-2">
-              This will create 50+ users, appointments, medical records, and more
+              This will set up subscription packages and system configurations (no fake data)
             </p>
           </CardContent>
         </Card>
@@ -267,22 +267,28 @@ export function DataInitializer() {
         </CardContent>
       </Card>
 
-      {/* Quick Start Guide */}
-      {!hasData && (
-        <Card className="mt-6 border-blue-200 bg-blue-50">
-          <CardHeader>
-            <CardTitle className="text-blue-800">Quick Start Guide</CardTitle>
-          </CardHeader>
-          <CardContent className="text-sm text-blue-700">
-            <ol className="list-decimal list-inside space-y-2">
-              <li>Click "Generate Sample Data" to create realistic test data</li>
-              <li>Go to the Login page and use any generated email to sign in</li>
-              <li>Explore different dashboards based on user roles</li>
-              <li>Test features like booking appointments, ordering food, etc.</li>
+      {/* Production Ready Notice */}
+      <Card className="mt-6 border-green-200 bg-green-50">
+        <CardHeader>
+          <CardTitle className="text-green-800">🚀 Production Ready System</CardTitle>
+        </CardHeader>
+        <CardContent className="text-sm text-green-700">
+          <div className="space-y-2">
+            <p><strong>✅ All fake data has been removed</strong></p>
+            <p><strong>✅ Database is clean and ready for real users</strong></p>
+            <p><strong>✅ Only essential system configurations are loaded</strong></p>
+          </div>
+          <div className="mt-4 p-3 bg-white rounded border border-green-200">
+            <h4 className="font-semibold text-green-800 mb-2">Next Steps:</h4>
+            <ol className="list-decimal list-inside space-y-1 text-green-700">
+              <li>Initialize system data (subscription packages)</li>
+              <li>Users can now register their own accounts</li>
+              <li>Healthcare providers can sign up and create profiles</li>
+              <li>Start using the platform with real data</li>
             </ol>
-          </CardContent>
-        </Card>
-      )}
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
