@@ -1,5 +1,5 @@
 import React from 'react';
-import AdminDashboardClean from './admin/AdminDashboardClean';
+import ProductionAdminDashboard from './admin/ProductionAdminDashboard';
 
 interface AdminDashboardProps {
   adminId?: string;
@@ -8,7 +8,7 @@ interface AdminDashboardProps {
 
 // Clean Admin Dashboard Component (Production Ready)
 export const AdminDashboard: React.FC<AdminDashboardProps> = ({ adminId, adminName }) => {
-  return <AdminDashboardClean />;
+  return       <ProductionAdminDashboard />;
 };
 
 export default AdminDashboard;

@@ -50,6 +50,7 @@ const App = () => (
             <Route path="/dashboard/community_manager" element={<ComingSoonDashboard role="Community Manager" />} />
             <Route path="/dashboard/patient" element={<ComingSoonDashboard role="Patient" />} />
             <Route path="/dashboard/admin" element={<AdminPage />} />
+            <Route path="/packages" element={<div>Package Selection Page (Coming Soon)</div>} />
             <Route path="/setup" element={<SetupPage />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />

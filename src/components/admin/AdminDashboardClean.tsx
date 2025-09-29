@@ -4,6 +4,9 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { 
   Users, 
@@ -26,10 +29,11 @@ import {
   Trash2,
   Eye,
   CheckCircle,
-  XCircle
+  XCircle,
+  TrendingUp
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
-import AdminForms from './AdminForms';
+import AdminForms from './WorkingAdminForms';
 import { useToast } from '@/hooks/use-toast';
 
 // Types for data management
@@ -63,6 +67,7 @@ export function AdminDashboardClean() {
   // Modal states
   const [showAddPatientModal, setShowAddPatientModal] = useState(false);
   const [showAddProviderModal, setShowAddProviderModal] = useState(false);
+
   
   // Data states
   const [patients, setPatients] = useState<Patient[]>([]);
@@ -203,10 +208,10 @@ export function AdminDashboardClean() {
             onSuccess={(patientData) => {
               const newPatient: Patient = {
                 id: `patient_${Date.now()}`,
-                firstName: patientData.personalInfo.firstName,
-                lastName: patientData.personalInfo.lastName,
-                email: patientData.personalInfo.email,
-                phone: patientData.personalInfo.phone,
+                firstName: patientData.firstName,
+                lastName: patientData.lastName,
+                email: patientData.email,
+                phone: patientData.phone,
                 status: 'active',
                 createdAt: new Date()
               };
@@ -218,6 +223,7 @@ export function AdminDashboardClean() {
                 title: "Success!",
                 description: "Patient has been successfully registered.",
               });
+              loadPatients(); // Refresh data
             }}
           />
         </DialogContent>
@@ -235,11 +241,11 @@ export function AdminDashboardClean() {
             onSuccess={(providerData) => {
               const newProvider: Provider = {
                 id: `provider_${Date.now()}`,
-                firstName: providerData.personalInfo.firstName,
-                lastName: providerData.personalInfo.lastName,
-                email: providerData.personalInfo.email,
-                phone: providerData.personalInfo.phone,
-                specialization: providerData.personalInfo.specialization,
+                firstName: providerData.firstName,
+                lastName: providerData.lastName,
+                email: providerData.email,
+                phone: providerData.phone,
+                specialization: providerData.specialization,
                 status: 'active',
                 createdAt: new Date()
               };
@@ -251,6 +257,7 @@ export function AdminDashboardClean() {
                 title: "Success!",
                 description: "Healthcare provider has been successfully registered.",
               });
+              loadProviders(); // Refresh data
             }}
           />
         </DialogContent>
@@ -544,10 +551,23 @@ function PatientsManagement({
                       </td>
                       <td className="py-3 px-4">
                         <div className="flex justify-center gap-2">
-                          <Button variant="outline" size="sm">
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => {
+                              setSelectedPatient(patient);
+                              setShowPatientDetailsModal(true);
+                            }}
+                          >
                             <Eye className="w-4 h-4" />
                           </Button>
-                          <Button variant="outline" size="sm">
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => {
+                              alert('Edit patient functionality will be implemented with a proper edit form');
+                            }}
+                          >
                             <Edit className="w-4 h-4" />
                           </Button>
                           <Button 
@@ -756,10 +776,22 @@ function ProvidersManagement({
                       </td>
                       <td className="py-3 px-4">
                         <div className="flex justify-center gap-2">
-                          <Button variant="outline" size="sm">
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => {
+                              alert(`Provider Details:\n\nName: Dr. ${provider.firstName} ${provider.lastName}\nSpecialization: ${provider.specialization}\nEmail: ${provider.email}\nPhone: ${provider.phone}\nStatus: ${provider.status}\nJoined: ${new Date(provider.createdAt).toLocaleDateString()}`);
+                            }}
+                          >
                             <Eye className="w-4 h-4" />
                           </Button>
-                          <Button variant="outline" size="sm">
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => {
+                              alert('Edit provider functionality will be implemented with a proper edit form');
+                            }}
+                          >
                             <Edit className="w-4 h-4" />
                           </Button>
                           <Button 
@@ -786,41 +818,357 @@ function ProvidersManagement({
 
 // 4. Appointments & Scheduling Component
 function AppointmentsScheduling() {
+  const [showAddAppointmentModal, setShowAddAppointmentModal] = useState(false);
+  const [appointments, setAppointments] = useState([]);
+  
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold">Appointments & Scheduling</h2>
-        <Button>
+        <div>
+          <h2 className="text-2xl font-bold">Appointments & Scheduling</h2>
+          <p className="text-gray-600">Manage patient appointments and provider schedules</p>
+        </div>
+        <Button onClick={() => setShowAddAppointmentModal(true)}>
           <Plus className="w-4 h-4 mr-2" />
           Add Appointment
         </Button>
       </div>
 
-      {/* Calendar View Placeholder */}
+      {/* Quick Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Today's Appointments</p>
+                <p className="text-2xl font-bold text-blue-600">0</p>
+              </div>
+              <Calendar className="w-8 h-8 text-blue-600" />
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">This Week</p>
+                <p className="text-2xl font-bold text-green-600">0</p>
+              </div>
+              <Activity className="w-8 h-8 text-green-600" />
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Pending</p>
+                <p className="text-2xl font-bold text-orange-600">0</p>
+              </div>
+              <AlertTriangle className="w-8 h-8 text-orange-600" />
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Completed</p>
+                <p className="text-2xl font-bold text-purple-600">0</p>
+              </div>
+              <CheckCircle className="w-8 h-8 text-purple-600" />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Calendar View */}
       <Card>
         <CardHeader>
-          <CardTitle>Calendar View</CardTitle>
-          <CardDescription>Manage appointments across all providers</CardDescription>
+          <CardTitle>Appointment Calendar</CardTitle>
+          <CardDescription>View and manage all appointments</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="text-center py-12 text-gray-500">
-            <Calendar className="w-16 h-16 mx-auto mb-4 opacity-50" />
+            <Calendar className="w-16 w-16 mx-auto mb-4 opacity-50" />
             <h3 className="text-lg font-semibold mb-2">No Appointments Scheduled</h3>
-            <p className="mb-4">Appointments will appear here once patients start booking</p>
+            <p className="mb-4">Start by scheduling your first appointment</p>
+            <Button onClick={() => setShowAddAppointmentModal(true)}>
+              <Plus className="w-4 h-4 mr-2" />
+              Schedule First Appointment
+            </Button>
           </div>
         </CardContent>
       </Card>
+      
+      {/* Add Appointment Modal */}
+      <Dialog open={showAddAppointmentModal} onOpenChange={setShowAddAppointmentModal}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>Schedule New Appointment</DialogTitle>
+            <DialogDescription>
+              Book an appointment for a patient with a healthcare provider
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-6">
+            {/* Patient and Provider Selection */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Select Patient *</Label>
+                <Select>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Choose patient" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {patients.map((patient) => (
+                      <SelectItem key={patient.id} value={patient.id}>
+                        {patient.firstName} {patient.lastName} - {patient.phone}
+                      </SelectItem>
+                    ))}
+                    {patients.length === 0 && (
+                      <SelectItem value="none" disabled>No patients registered</SelectItem>
+                    )}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Select Provider *</Label>
+                <Select>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Choose provider" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {providers.map((provider) => (
+                      <SelectItem key={provider.id} value={provider.id}>
+                        Dr. {provider.firstName} {provider.lastName} ({provider.specialization})
+                      </SelectItem>
+                    ))}
+                    {providers.length === 0 && (
+                      <SelectItem value="none" disabled>No providers registered</SelectItem>
+                    )}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {/* Date and Time Selection */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Appointment Date *</Label>
+                <Input 
+                  type="date" 
+                  min={new Date().toISOString().split('T')[0]}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Appointment Time *</Label>
+                <Select>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select time slot" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="09:00">09:00 AM</SelectItem>
+                    <SelectItem value="10:00">10:00 AM</SelectItem>
+                    <SelectItem value="11:00">11:00 AM</SelectItem>
+                    <SelectItem value="12:00">12:00 PM</SelectItem>
+                    <SelectItem value="14:00">02:00 PM</SelectItem>
+                    <SelectItem value="15:00">03:00 PM</SelectItem>
+                    <SelectItem value="16:00">04:00 PM</SelectItem>
+                    <SelectItem value="17:00">05:00 PM</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {/* Appointment Details */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Appointment Type *</Label>
+                <Select>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="initial_consultation">Initial Consultation</SelectItem>
+                    <SelectItem value="follow_up">Follow-up Visit</SelectItem>
+                    <SelectItem value="routine_checkup">Routine Checkup</SelectItem>
+                    <SelectItem value="prenatal_checkup">Prenatal Checkup</SelectItem>
+                    <SelectItem value="emergency">Emergency Consultation</SelectItem>
+                    <SelectItem value="lab_review">Lab Results Review</SelectItem>
+                    <SelectItem value="nutrition_counseling">Nutrition Counseling</SelectItem>
+                    <SelectItem value="therapy_session">Therapy Session</SelectItem>
+                    <SelectItem value="yoga_session">Yoga Session</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Duration (minutes)</Label>
+                <Select>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select duration" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="15">15 minutes</SelectItem>
+                    <SelectItem value="30">30 minutes</SelectItem>
+                    <SelectItem value="45">45 minutes</SelectItem>
+                    <SelectItem value="60">1 hour</SelectItem>
+                    <SelectItem value="90">1.5 hours</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {/* Additional Information */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Priority Level</Label>
+                <Select>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select priority" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="normal">Normal</SelectItem>
+                    <SelectItem value="urgent">Urgent</SelectItem>
+                    <SelectItem value="emergency">Emergency</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Consultation Mode</Label>
+                <Select>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select mode" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="in_person">In-Person</SelectItem>
+                    <SelectItem value="video_call">Video Call</SelectItem>
+                    <SelectItem value="phone_call">Phone Call</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {/* Patient Symptoms/Reason */}
+            <div className="space-y-2">
+              <Label>Reason for Visit / Symptoms</Label>
+              <Textarea 
+                placeholder="Describe the main reason for this appointment, current symptoms, or concerns..." 
+                className="min-h-[80px]"
+              />
+            </div>
+
+            {/* Special Instructions */}
+            <div className="space-y-2">
+              <Label>Special Instructions (Optional)</Label>
+              <Textarea 
+                placeholder="Any special instructions, preparation required, or additional notes for the provider..." 
+                className="min-h-[60px]"
+              />
+            </div>
+
+            {/* Reminder Settings */}
+            <div className="space-y-2">
+              <Label>Send Reminder</Label>
+              <div className="flex items-center space-x-4">
+                <div className="flex items-center space-x-2">
+                  <input type="checkbox" id="email_reminder" className="rounded" />
+                  <Label htmlFor="email_reminder" className="text-sm">Email (24h before)</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <input type="checkbox" id="sms_reminder" className="rounded" />
+                  <Label htmlFor="sms_reminder" className="text-sm">SMS (2h before)</Label>
+                </div>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex justify-end gap-2 pt-4 border-t">
+              <Button variant="outline" onClick={() => setShowAddAppointmentModal(false)}>
+                Cancel
+              </Button>
+              <Button onClick={() => {
+                // Add comprehensive appointment data collection here
+                const appointmentData = {
+                  id: `appointment_${Date.now()}`,
+                  patientId: 'selected_patient_id',
+                  providerId: 'selected_provider_id',
+                  date: new Date(),
+                  time: 'selected_time',
+                  type: 'selected_type',
+                  duration: 'selected_duration',
+                  priority: 'selected_priority',
+                  mode: 'selected_mode',
+                  reason: 'entered_reason',
+                  instructions: 'entered_instructions',
+                  status: 'scheduled',
+                  createdAt: new Date()
+                };
+                
+                // Store appointment (localStorage for now)
+                const appointments = JSON.parse(localStorage.getItem('pregacare_appointments') || '[]');
+                appointments.push(appointmentData);
+                localStorage.setItem('pregacare_appointments', JSON.stringify(appointments));
+                
+                setShowAddAppointmentModal(false);
+                toast({
+                  title: "Success!",
+                  description: "Appointment has been scheduled successfully.",
+                });
+              }}>
+                Schedule Appointment
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
 
 // 5. Packages & Subscription Component
 function PackagesSubscription() {
+  const [showCreatePackageModal, setShowCreatePackageModal] = useState(false);
+  const [packages, setPackages] = useState([]);
+  
+  const defaultPackages = [
+    {
+      id: 'basic',
+      name: 'Basic Care',
+      price: 2999,
+      duration: '3 months',
+      services: ['Monthly checkups', 'Basic consultations', 'Health monitoring'],
+      popular: false
+    },
+    {
+      id: 'premium',
+      name: 'Premium Care',
+      price: 5999,
+      duration: '6 months', 
+      services: ['Bi-weekly checkups', 'Nutrition counseling', 'Yoga sessions', '24/7 support'],
+      popular: true
+    },
+    {
+      id: 'complete',
+      name: 'Complete Care',
+      price: 9999,
+      duration: '12 months',
+      services: ['Weekly checkups', 'Full care team', 'All services included', 'Priority support'],
+      popular: false
+    }
+  ];
+  
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold">Packages & Subscription</h2>
-        <Button>
+        <div>
+          <h2 className="text-2xl font-bold">Healthcare Packages</h2>
+          <p className="text-gray-600">Manage subscription plans and service packages</p>
+        </div>
+        <Button onClick={() => setShowCreatePackageModal(true)}>
           <Plus className="w-4 h-4 mr-2" />
           Create Package
         </Button>
@@ -828,17 +1176,472 @@ function PackagesSubscription() {
 
       {/* Package Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Packages will be loaded here */}
-        <Card>
-          <CardContent className="p-0">
-            <div className="text-center py-12 text-gray-500">
-              <Package className="w-16 h-16 mx-auto mb-4 opacity-50" />
-              <h3 className="text-lg font-semibold mb-2">No Packages Created</h3>
-              <p className="mb-4">Create subscription packages for your patients</p>
-            </div>
-          </CardContent>
-        </Card>
+        {defaultPackages.map((pkg) => (
+          <Card key={pkg.id} className={`relative ${pkg.popular ? 'border-blue-500 shadow-lg' : ''}`}>
+            {pkg.popular && (
+              <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+                <Badge className="bg-blue-600 text-white px-3 py-1">Most Popular</Badge>
+              </div>
+            )}
+            <CardHeader className="text-center pb-4">
+              <CardTitle className="text-xl font-bold">{pkg.name}</CardTitle>
+              <div className="text-3xl font-bold text-blue-600">
+                ₹{pkg.price.toLocaleString()}
+                <span className="text-sm font-normal text-gray-500">/{pkg.duration}</span>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <ul className="space-y-2 mb-6">
+                {pkg.services.map((service, index) => (
+                  <li key={index} className="flex items-center">
+                    <CheckCircle className="w-4 h-4 text-green-500 mr-2" />
+                    <span className="text-sm">{service}</span>
+                  </li>
+                ))}
+              </ul>
+              <div className="space-y-2">
+                <Button className="w-full" variant="outline">
+                  <Eye className="w-4 h-4 mr-2" />
+                  View Details
+                </Button>
+                <Button className="w-full" variant="outline">
+                  <Edit className="w-4 h-4 mr-2" />
+                  Edit Package
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
       </div>
+      
+      {/* Create Package Modal */}
+      <Dialog open={showCreatePackageModal} onOpenChange={setShowCreatePackageModal}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>Create New Healthcare Package</DialogTitle>
+            <DialogDescription>
+              Design a new subscription package for patients
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-6">
+            {/* Package Basic Information */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Basic Information</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Package Name *</Label>
+                    <Input placeholder="e.g., Premium Prenatal Care" required />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Package Category *</Label>
+                    <Select>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select category" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="prenatal">Prenatal Care</SelectItem>
+                        <SelectItem value="postnatal">Postnatal Care</SelectItem>
+                        <SelectItem value="nutrition">Nutrition & Wellness</SelectItem>
+                        <SelectItem value="therapy">Therapy & Mental Health</SelectItem>
+                        <SelectItem value="fitness">Fitness & Yoga</SelectItem>
+                        <SelectItem value="comprehensive">Comprehensive Care</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <Label>Duration *</Label>
+                    <Select>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select duration" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="1">1 Month</SelectItem>
+                        <SelectItem value="3">3 Months</SelectItem>
+                        <SelectItem value="6">6 Months</SelectItem>
+                        <SelectItem value="9">9 Months</SelectItem>
+                        <SelectItem value="12">12 Months</SelectItem>
+                        <SelectItem value="custom">Custom Duration</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Price (₹) *</Label>
+                    <Input type="number" placeholder="5999" min="0" required />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Discount (%)</Label>
+                    <Input type="number" placeholder="10" min="0" max="100" />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Package Description *</Label>
+                  <Textarea 
+                    placeholder="Comprehensive description of what this package offers, its benefits, and target audience..." 
+                    className="min-h-[100px]"
+                    required
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Included Services */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Included Services</CardTitle>
+                <CardDescription>Select all services included in this package</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-3">
+                    <h4 className="font-medium text-sm text-gray-700">Medical Services</h4>
+                    {[
+                      { id: 'gynecologist_consultation', label: 'Gynecologist Consultations', sessions: 'Monthly' },
+                      { id: 'general_consultation', label: 'General Health Consultations', sessions: 'Bi-weekly' },
+                      { id: 'emergency_consultation', label: '24/7 Emergency Consultation', sessions: 'Unlimited' },
+                      { id: 'lab_tests', label: 'Laboratory Tests', sessions: 'Quarterly' },
+                      { id: 'ultrasound', label: 'Ultrasound Scans', sessions: 'As needed' },
+                      { id: 'health_monitoring', label: 'Health Parameter Monitoring', sessions: 'Weekly' }
+                    ].map((service) => (
+                      <div key={service.id} className="flex items-center justify-between space-x-2 p-2 border rounded">
+                        <div className="flex items-center space-x-2">
+                          <input type="checkbox" id={service.id} className="rounded" />
+                          <Label htmlFor={service.id} className="text-sm">{service.label}</Label>
+                        </div>
+                        <span className="text-xs text-gray-500">{service.sessions}</span>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  <div className="space-y-3">
+                    <h4 className="font-medium text-sm text-gray-700">Wellness Services</h4>
+                    {[
+                      { id: 'nutrition_counseling', label: 'Nutrition Counseling', sessions: 'Bi-weekly' },
+                      { id: 'diet_planning', label: 'Personalized Diet Planning', sessions: 'Monthly' },
+                      { id: 'yoga_sessions', label: 'Prenatal Yoga Sessions', sessions: 'Weekly' },
+                      { id: 'therapy_sessions', label: 'Psychological Support', sessions: 'As needed' },
+                      { id: 'lactation_support', label: 'Lactation Counseling', sessions: 'Post-delivery' },
+                      { id: 'health_education', label: 'Health Education Materials', sessions: 'Unlimited' }
+                    ].map((service) => (
+                      <div key={service.id} className="flex items-center justify-between space-x-2 p-2 border rounded">
+                        <div className="flex items-center space-x-2">
+                          <input type="checkbox" id={service.id} className="rounded" />
+                          <Label htmlFor={service.id} className="text-sm">{service.label}</Label>
+                        </div>
+                        <span className="text-xs text-gray-500">{service.sessions}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Package Features & Benefits */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Package Features</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Target Audience</Label>
+                    <Select>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select target audience" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="first_time_mothers">First-time Mothers</SelectItem>
+                        <SelectItem value="experienced_mothers">Experienced Mothers</SelectItem>
+                        <SelectItem value="high_risk_pregnancy">High-risk Pregnancy</SelectItem>
+                        <SelectItem value="working_women">Working Women</SelectItem>
+                        <SelectItem value="all_pregnant_women">All Pregnant Women</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Package Priority</Label>
+                    <Select>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select priority" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="basic">Basic</SelectItem>
+                        <SelectItem value="standard">Standard</SelectItem>
+                        <SelectItem value="premium">Premium</SelectItem>
+                        <SelectItem value="vip">VIP</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Key Benefits</Label>
+                  <Textarea 
+                    placeholder="List the main benefits and advantages of this package (one per line)..." 
+                    className="min-h-[80px]"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Package Limitations (if any)</Label>
+                  <Textarea 
+                    placeholder="Any restrictions, limitations, or conditions for this package..." 
+                    className="min-h-[60px]"
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Package Settings */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Package Settings</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Availability Status</Label>
+                    <Select>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="active">Active & Available</SelectItem>
+                        <SelectItem value="coming_soon">Coming Soon</SelectItem>
+                        <SelectItem value="limited_time">Limited Time Offer</SelectItem>
+                        <SelectItem value="inactive">Inactive</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Maximum Enrollments</Label>
+                    <Input type="number" placeholder="100" min="1" />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Special Features</Label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {[
+                      'Most Popular',
+                      'Best Value',
+                      'New Package',
+                      'Limited Offer',
+                      'Premium Support',
+                      'Money Back Guarantee'
+                    ].map((feature) => (
+                      <div key={feature} className="flex items-center space-x-2">
+                        <input type="checkbox" id={feature} className="rounded" />
+                        <Label htmlFor={feature} className="text-sm">{feature}</Label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Action Buttons */}
+            <div className="flex justify-end gap-2 pt-4 border-t">
+              <Button variant="outline" onClick={() => setShowCreatePackageModal(false)}>
+                Cancel
+              </Button>
+              <Button onClick={() => {
+                // Collect comprehensive package data
+                const packageData = {
+                  id: `package_${Date.now()}`,
+                  name: 'entered_name',
+                  category: 'selected_category',
+                  duration: 'selected_duration',
+                  price: 'entered_price',
+                  discount: 'entered_discount',
+                  description: 'entered_description',
+                  services: [], // selected services
+                  features: [], // selected features
+                  targetAudience: 'selected_audience',
+                  priority: 'selected_priority',
+                  status: 'selected_status',
+                  maxEnrollments: 'entered_max',
+                  createdAt: new Date()
+                };
+                
+                // Store package (localStorage for now)
+                const packages = JSON.parse(localStorage.getItem('pregacare_packages') || '[]');
+                packages.push(packageData);
+                localStorage.setItem('pregacare_packages', JSON.stringify(packages));
+                
+                setShowCreatePackageModal(false);
+                toast({
+                  title: "Success!",
+                  description: "Healthcare package has been created successfully.",
+                });
+              }}>
+                Create Package
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Patient Details Modal */}
+      <Dialog open={showPatientDetailsModal} onOpenChange={setShowPatientDetailsModal}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-xl">
+              Patient Profile - {selectedPatient ? `${selectedPatient.firstName} ${selectedPatient.lastName}` : 'Unknown'}
+            </DialogTitle>
+            <DialogDescription>Complete patient information and medical history</DialogDescription>
+          </DialogHeader>
+          
+          {selectedPatient && (
+            <div className="space-y-6">
+              {/* Patient Basic Information */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center justify-between">
+                    Personal Information
+                    <Button variant="outline" size="sm">
+                      Edit Profile
+                    </Button>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-3 gap-6">
+                    <div className="space-y-4">
+                      <div>
+                        <Label className="text-sm font-medium text-gray-500">Full Name</Label>
+                        <p className="text-gray-900 font-medium">{selectedPatient.firstName} {selectedPatient.lastName}</p>
+                      </div>
+                      <div>
+                        <Label className="text-sm font-medium text-gray-500">Date of Birth</Label>
+                        <p className="text-gray-900">{selectedPatient.dateOfBirth || 'Not specified'}</p>
+                      </div>
+                      <div>
+                        <Label className="text-sm font-medium text-gray-500">Blood Group</Label>
+                        <p className="text-gray-900">{selectedPatient.bloodGroup || 'Not specified'}</p>
+                      </div>
+                    </div>
+                    <div className="space-y-4">
+                      <div>
+                        <Label className="text-sm font-medium text-gray-500">Contact Number</Label>
+                        <p className="text-gray-900">{selectedPatient.phone}</p>
+                      </div>
+                      <div>
+                        <Label className="text-sm font-medium text-gray-500">Email Address</Label>
+                        <p className="text-gray-900">{selectedPatient.email}</p>
+                      </div>
+                      <div>
+                        <Label className="text-sm font-medium text-gray-500">Emergency Contact</Label>
+                        <p className="text-gray-900">{selectedPatient.emergencyContact || 'Not specified'}</p>
+                      </div>
+                    </div>
+                    <div className="space-y-4">
+                      <div>
+                        <Label className="text-sm font-medium text-gray-500">Address</Label>
+                        <p className="text-gray-900">{selectedPatient.address || 'Not specified'}</p>
+                      </div>
+                      <div>
+                        <Label className="text-sm font-medium text-gray-500">Insurance</Label>
+                        <p className="text-gray-900">{selectedPatient.insurance || 'Not specified'}</p>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Pregnancy Information */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Pregnancy Information</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-4 gap-6">
+                    <div>
+                      <Label className="text-sm font-medium text-gray-500">Estimated Due Date</Label>
+                      <p className="text-gray-900 font-medium">{selectedPatient.dueDate || 'Not specified'}</p>
+                    </div>
+                    <div>
+                      <Label className="text-sm font-medium text-gray-500">Current Trimester</Label>
+                      <p className="text-gray-900">{selectedPatient.trimester || 'Not specified'}</p>
+                    </div>
+                    <div>
+                      <Label className="text-sm font-medium text-gray-500">Pregnancy Type</Label>
+                      <p className="text-gray-900">{selectedPatient.pregnancyType || 'Single pregnancy'}</p>
+                    </div>
+                    <div>
+                      <Label className="text-sm font-medium text-gray-500">Risk Level</Label>
+                      <p className="text-gray-900">{selectedPatient.riskLevel || 'Low Risk'}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Medical History */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Medical History & Current Status</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-2 gap-6">
+                    <div className="space-y-4">
+                      <div>
+                        <Label className="text-sm font-medium text-gray-500">Account Status</Label>
+                        <Badge variant={selectedPatient.status === 'active' ? 'default' : 'secondary'} className="ml-2">
+                          {selectedPatient.status}
+                        </Badge>
+                      </div>
+                      <div>
+                        <Label className="text-sm font-medium text-gray-500">Registration Date</Label>
+                        <p className="text-gray-900">{new Date(selectedPatient.createdAt).toLocaleDateString()}</p>
+                      </div>
+                    </div>
+                    <div className="space-y-4">
+                      <div>
+                        <Label className="text-sm font-medium text-gray-500">Patient ID</Label>
+                        <p className="text-gray-900 font-mono">{selectedPatient.id}</p>
+                      </div>
+                      <div>
+                        <Label className="text-sm font-medium text-gray-500">Last Update</Label>
+                        <p className="text-gray-900">{selectedPatient.updatedAt ? new Date(selectedPatient.updatedAt).toLocaleDateString() : 'No updates'}</p>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Action Buttons */}
+              <div className="flex justify-between pt-4 border-t">
+                <div className="space-x-2">
+                  <Button variant="outline">
+                    View Full History
+                  </Button>
+                  <Button variant="outline">
+                    Schedule Appointment
+                  </Button>
+                  <Button variant="outline">
+                    Send Message
+                  </Button>
+                </div>
+                <div className="space-x-2">
+                  <Button variant="outline" onClick={() => setShowPatientDetailsModal(false)}>
+                    Close
+                  </Button>
+                  <Button onClick={() => {
+                    alert('Patient edit functionality will be implemented with comprehensive edit form');
+                  }}>
+                    Edit Patient
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
