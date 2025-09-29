@@ -1,10 +1,10 @@
 import React from 'react';
-import ProductionAdminDashboard from '@/components/admin/ProductionAdminDashboard';
+import SimpleAdminDashboard from '@/components/SimpleAdminDashboard';
 
 const AdminPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50">
-      <ProductionAdminDashboard />
+      <SimpleAdminDashboard />
     </div>
   );
 };
