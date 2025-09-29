@@ -2,6 +2,8 @@ import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { MultiRoleManager } from '@/hooks/useEnhancedAuth';
+import ProviderServiceManager from '@/lib/providerServiceManager';
 import type { UserRole } from '@/types/roles';
 import { Card, CardContent } from '@/components/ui/card';
 import { Loader2 } from 'lucide-react';
@@ -22,7 +24,7 @@ export default function AuthCallback() {
             description: error.message || 'Failed to complete Google sign-in',
             variant: 'destructive'
           });
-          navigate('/auth');
+          navigate('/');
           return;
         }
 
@@ -34,44 +36,71 @@ export default function AuthCallback() {
           const urlParams = new URLSearchParams(window.location.search);
           const role = urlParams.get('role') || 'patient';
           
-          // Create or update user profile in your system
+          // Create user data for your system
           const userData = {
-            id: user.id,
-            email: user.email!,
             name: userMetadata.full_name || userMetadata.name || user.email!.split('@')[0],
-            profilePicture: userMetadata.avatar_url,
-            role: role as UserRole,
-            phone: userMetadata.phone_number,
-            isActive: true
+            role: role,
+            phone: userMetadata.phone_number
           };
 
-          // Here you would typically save to your database
-          // For now, we'll simulate success and redirect to dashboard
-          
-          toast({
-            title: 'Welcome to Pregacare!',
-            description: `Successfully signed in with Google as ${role}`,
-          });
+          try {
+            // Use your existing MultiRoleManager to create/update user
+            const result = MultiRoleManager.createOrUpdateUser(user.email!, userData);
+            
+            // Create provider service profile if it's a provider role
+            let generatedProviderId = null;
+            if (role !== 'patient') {
+              const providerService = ProviderServiceManager.createProviderService(result.user.id, role, {
+                displayName: result.user.name,
+                specialization: `${role.charAt(0).toUpperCase() + role.slice(1)} Specialist`
+              });
+              generatedProviderId = providerService.id;
+            }
+            
+            // Create session
+            localStorage.setItem('pregacare_session', JSON.stringify({
+              email: user.email,
+              currentRole: role,
+              loginTime: new Date().toISOString()
+            }));
+            
+            toast({
+              title: 'Welcome to Pregacare!',
+              description: `Successfully signed in with Google as ${userData.name}${generatedProviderId ? ` (ID: ${generatedProviderId})` : ''}`,
+            });
 
-          // Redirect based on role
-          const dashboardRoutes: Record<string, string> = {
-            doctor: '/doctor',
-            radiologist: '/radiologist', 
-            lab_technician: '/lab',
-            nutritionist: '/nutritionist',
-            therapist: '/therapist',
-            yoga_instructor: '/yoga',
-            pharmacy: '/pharmacy',
-            food_service: '/delivery',
-            community_manager: '/community',
-            patient: '/patient',
-            admin: '/admin'
-          };
+            // Redirect to the correct dashboard route based on your current routing structure
+            const dashboardRoutes: Record<string, string> = {
+              doctor: '/dashboard/doctor',
+              radiologist: '/dashboard/radiologist', 
+              lab_technician: '/dashboard/lab_technician',
+              nutritionist: '/dashboard/nutritionist',
+              therapist: '/dashboard/therapist',
+              yoga_instructor: '/dashboard/yoga_instructor',
+              pharmacy: '/dashboard/pharmacy',
+              food_service: '/dashboard/food_service',
+              community_manager: '/dashboard/community_manager',
+              patient: '/dashboard/patient',
+              admin: '/dashboard/admin'
+            };
 
-          navigate(dashboardRoutes[role] || '/patient');
+            // Short delay to show success message then redirect
+            setTimeout(() => {
+              navigate(dashboardRoutes[role] || '/dashboard/patient');
+            }, 1500);
+            
+          } catch (userError) {
+            console.error('User creation error:', userError);
+            toast({
+              title: 'Account Setup Error',
+              description: userError instanceof Error ? userError.message : 'Failed to set up your account',
+              variant: 'destructive'
+            });
+            navigate('/');
+          }
         } else {
-          // No session found, redirect back to auth
-          navigate('/auth');
+          // No session found, redirect back to home
+          navigate('/');
         }
       } catch (error) {
         console.error('Unexpected error in auth callback:', error);
@@ -80,7 +109,7 @@ export default function AuthCallback() {
           description: 'An unexpected error occurred during sign-in',
           variant: 'destructive'
         });
-        navigate('/auth');
+        navigate('/');
       }
     };
 
